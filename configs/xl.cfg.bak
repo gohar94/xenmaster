@@ -1,0 +1,28 @@
+
+
+builder='hvm'
+
+memory = 512
+shadow_memory = 8
+name = "xen1.example.com"
+#vif=[ 'bridge=xenbr0' ]
+disk = [ 'file:/home/xen1.example.com.img,xvda,w', 'file:/home/xenmaster/sample_os/ubuntu-12.04.4-desktop-amd64.iso,xvdc:cdrom,r' ]
+#disk = [ 'file:/home/xen1.example.com.img,xvda,w', 'phy:/dev/cdrom,xvdc:cdrom,r' ]
+device_model = '/usr/lib/xen-default/bin/qemu-dm'
+# boot on floppy (a), hard disk (c) or CD-ROM (d)
+# default: hard disk, cd-rom, floppy
+boot="dc"
+
+sdl=0
+hap=0
+vnc=1
+vnclisten="0.0.0.0"
+vncconsole=1
+vncpasswd='howtoforge'
+stdvga=0
+serial='pty'
+usb=1
+
+on_poweroff = 'destroy'
+on_reboot   = 'restart'
+on_crash    = 'restart'
