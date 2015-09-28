@@ -21,6 +21,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// @xenmaster
+#include <xen/list.h>
+
 #include <xen/config.h>
 #include <xen/types.h>
 #include <xen/mm.h>
@@ -64,6 +67,21 @@
  * Neither of those would be hard to change, but we'd need to be able to 
  * deal with shadows made in one mode and used in another.
  */
+
+// @xenmaster
+static int done = 0;
+
+// @xenmaster
+
+/* This struct uses the linux linked list implementation provided in /xen/list.h 
+to store mappings of page numbers against frame numbers. It will be used for 
+maintaining the mapping of, both, local and remote pages. */
+
+struct mappings_list {
+  int page_number;
+  int frame_number;
+  struct list_head list;
+};
 
 #define FETCH_TYPE_PREFETCH 1
 #define FETCH_TYPE_DEMAND   2
@@ -2987,6 +3005,11 @@ static int sh_page_fault(struct vcpu *v,
                           unsigned long va, 
                           struct cpu_user_regs *regs)
 {
+
+    // @xenmaster
+    struct mappings_list list_remote;
+    struct mappings_list list_local;
+
     struct domain *d = v->domain;
 
     walk_t gw;
@@ -3009,11 +3032,24 @@ static int sh_page_fault(struct vcpu *v,
                   v->domain->domain_id, v->vcpu_id, va, regs->error_code,
                   regs->eip);
 
-    perfc_incr(shadow_fault);
-    udelay(10);
+    perfc_incr(shadow_fault);    
+    
     // @xenmaster
-    printk("total pages are %u \n", d->arch.paging.shadow.total_pages);
-    // printk("hahaha page=%#lx \n", va & PAGE_MASK);
+    // udelay(10);
+    
+    // @xenmaster
+    printk("current page access is for page=%#lx \n", va & PAGE_MASK);
+    
+    // @xenmaster
+    if (done == 0) {
+      // This portion only gets called once; the "done" variable ensures that.
+      done = 1;
+      INIT_LIST_HEAD(&list_local.list);
+      INIT_LIST_HEAD(&list_remote.list);
+      printk("initialized lists\n");
+      printk("total pages are %u \n", d->arch.paging.shadow.total_pages);
+      printk("free pages are %u \n", d->arch.paging.shadow.free_pages);
+    }
 
 #if SHADOW_OPTIMIZATIONS & SHOPT_FAST_EMULATION
     /* If faulting frame is successfully emulated in last shadow fault
@@ -3191,6 +3227,32 @@ static int sh_page_fault(struct vcpu *v,
     /* What mfn is the guest trying to access? */
     gfn = guest_l1e_get_gfn(gw.l1e);
     gmfn = get_gfn(d, gfn, &p2mt);
+
+    // @xenmaster
+    printk("machine frame being accessed is %"PRI_mfn"\n", mfn_x(gmfn));
+    printk("machine frame being accessed is %#lx\n", mfn_x(gmfn));
+    
+    // @xenmaster
+    /* below code is just some testing code, should be removed asap */
+    // if ((va & PAGE_MASK) == 0xdbd0000) {
+    //   printk("page is in range, accessing page=%#lx \n", va & PAGE_MASK);
+    //   gmfn = 0x8f3db;
+    //   printk("swapping a");
+    // }
+    // if ((va & PAGE_MASK) == 0xdb51000) {
+    //   printk("page is in range, accessing page=%#lx \n", va & PAGE_MASK);
+    //   gmfn = 0x8f3da;
+    //   printk("swapping b");
+    // }
+    
+    // @xenmaster
+    if ((va & PAGE_MASK) > 0xdb51000) {
+      // 1) find the page in the list of remote pages, call it remote_page
+        // 2a) if found, then swap the CONTENTS of the frame pointed by LRU page with this remote_page's frame
+        // 3a) use the newly pointed frame by remote_page and insert this into the local_mappings list
+        // 4a) insert the mapping of the LRU swapped out earlier into the remote_mappings list
+          // 2b) if not found, then ... ???
+    }
 
     if ( shadow_mode_refcounts(d) && 
          ((!p2m_is_valid(p2mt) && !p2m_is_grant(p2mt)) ||
