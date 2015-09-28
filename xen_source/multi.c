@@ -78,8 +78,8 @@ to store mappings of page numbers against frame numbers. It will be used for
 maintaining the mapping of, both, local and remote pages. */
 
 struct mappings_list {
-  int page_number;
-  int frame_number;
+  unsigned long page_number; // TODO make sure the data type works
+  unsigned long frame_number; // TODO make sure the data type works
   struct list_head list;
 };
 
