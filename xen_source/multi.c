@@ -72,7 +72,6 @@
 static int done = 0;
 
 // @xenmaster
-
 /* This struct uses the linux linked list implementation provided in /xen/list.h 
 to store mappings of page numbers against frame numbers. It will be used for 
 maintaining the mapping of, both, local and remote pages. */
@@ -82,6 +81,9 @@ struct mappings_list {
   unsigned long frame_number; // TODO make sure the data type works
   struct list_head list;
 };
+
+static struct mappings_list list_remote;
+static struct mappings_list list_local;
 
 #define FETCH_TYPE_PREFETCH 1
 #define FETCH_TYPE_DEMAND   2
@@ -3007,8 +3009,6 @@ static int sh_page_fault(struct vcpu *v,
 {
 
     // @xenmaster
-    struct mappings_list list_remote;
-    struct mappings_list list_local;
     struct mappings_list add;
     // struct list_head *pos;
     // struct mappings_list *tmp;
@@ -3238,11 +3238,12 @@ static int sh_page_fault(struct vcpu *v,
     // @xenmaster
     /* to add into the lists */
     // tmp = (struct mappings_list *)malloc(sizeof(struct mappings_list));    
-    add.page_number = (va & PAGE_MASK);
-    add.frame_number = mfn_x(gmfn);
-    list_add(&(add.list), &(list_local.list));
-    printk("added to list\n");
-    
+    if (done == 1) { // make sure that the lists have been initialized
+      add.page_number = (va & PAGE_MASK);
+      add.frame_number = mfn_x(gmfn);
+      // list_add(&(add.list), &(list_local.list));
+      printk("added to list\n");
+    }
     // @xenmaster
     /* to iterate over the lists */
     // list_for_each(pos, &list_local.list) {
