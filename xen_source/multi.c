@@ -3011,8 +3011,7 @@ static int sh_page_fault(struct vcpu *v,
     // @xenmaster
     struct mappings_list add;
     int i = 0;
-    struct list_head *pos;
-    struct mappings_list *tmp;
+    struct mappings_list *pos;
 
     struct domain *d = v->domain;
 
@@ -3247,10 +3246,9 @@ static int sh_page_fault(struct vcpu *v,
       
       // @xenmaster
       /* to iterate over the lists */
-      list_for_each(pos, &list_local.list) {
+      list_for_each_entry(pos, &list_local.list, list) {
         i++;
-        tmp = list_entry(pos, struct mappings_list, list);
-        printk("page num is %#lx and mfn is %#lx\n", tmp->page_number, tmp->frame_number);
+        printk("page num is %#lx and mfn is %#lx\n", pos->page_number, pos->frame_number);
       }
       printk("num in list is %d\n", i);
     }
