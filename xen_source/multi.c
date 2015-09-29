@@ -3240,7 +3240,7 @@ static int sh_page_fault(struct vcpu *v,
     // tmp = (struct mappings_list *)malloc(sizeof(struct mappings_list));    
     add.page_number = (va & PAGE_MASK);
     add.frame_number = mfn_x(gmfn);
-    // list_add(&(add.list), &(list_local.list));
+    list_add(&(add.list), &(list_local.list));
     printk("added to list\n");
     
     // @xenmaster
