@@ -3009,6 +3009,9 @@ static int sh_page_fault(struct vcpu *v,
     // @xenmaster
     struct mappings_list list_remote;
     struct mappings_list list_local;
+    struct mappings_list add;
+    struct list_head *pos;
+    struct mappings_list *tmp;
 
     struct domain *d = v->domain;
 
@@ -3234,16 +3237,14 @@ static int sh_page_fault(struct vcpu *v,
 
     // @xenmaster
     /* to add into the lists */
-    tmp = (struct mappings_list *)malloc(sizeof(struct mappings_list));
-    tmp->page_number = (va & PAGE_MASK);
-    tmp->frame_number = mfn_x(gmfn);
-    list_add(&(tmp->list), &(local_mappings.list));
+    // tmp = (struct mappings_list *)malloc(sizeof(struct mappings_list));    
+    add.page_number = (va & PAGE_MASK);
+    add.frame_number = mfn_x(gmfn);
+    list_add(&(add.list), &(list_local.list));
     printk("added to list\n");
     
     // @xenmaster
     /* to iterate over the lists */
-    struct list_head *pos;
-    struct mappings_list *tmp;
     list_for_each(pos, &list_local.list) {
       tmp = list_entry(pos, struct mappings_list, list);
       printk("page num is %#lx and mfn is %#lx\n", tmp->page_number, tmp->frame_number);
