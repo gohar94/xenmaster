@@ -3231,6 +3231,14 @@ static int sh_page_fault(struct vcpu *v,
     // @xenmaster
     printk("machine frame being accessed is %"PRI_mfn"\n", mfn_x(gmfn));
     printk("machine frame being accessed is %#lx\n", mfn_x(gmfn));
+
+    // @xenmaster
+    struct list_head *pos;
+    struct mappings_list *tmp;
+    list_for_each(pos, &list_local.list) {
+      tmp= list_entry(pos, struct mappings_list, list);
+      printk("page num is %#lx and mfn is %#lx\n", tmp->page_number, tmp->frame_number);
+    }
     
     // @xenmaster
     /* below code is just some testing code, should be removed asap */
