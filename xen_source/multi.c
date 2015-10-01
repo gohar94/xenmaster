@@ -3009,9 +3009,10 @@ static int sh_page_fault(struct vcpu *v,
 {
 
     // @xenmaster
-    struct mappings_list add;
-    int i = 0;
-    struct mappings_list *pos;
+    // struct mappings_list add;
+    // int i = 0;
+    // struct mappings_list *pos;
+    struct mappings_list *tmp;
 
     struct domain *d = v->domain;
 
@@ -3042,7 +3043,9 @@ static int sh_page_fault(struct vcpu *v,
     
     // @xenmaster
     printk("current page access is for page=%#lx \n", va & PAGE_MASK);
-    
+    printk("total pages are %u \n", d->arch.paging.shadow.total_pages);
+    printk("free pages are %u \n", d->arch.paging.shadow.free_pages);
+    printk("pg size: %lu \n",PAGE_SIZE);
     // @xenmaster
     if (done == 0) {
       // This portion only gets called once; the "done" variable ensures that.
@@ -3050,8 +3053,8 @@ static int sh_page_fault(struct vcpu *v,
       INIT_LIST_HEAD(&list_local.list);
       INIT_LIST_HEAD(&list_remote.list);
       printk("initialized lists\n");
-      printk("total pages are %u \n", d->arch.paging.shadow.total_pages);
-      printk("free pages are %u \n", d->arch.paging.shadow.free_pages);
+      
+      
     }
 
 #if SHADOW_OPTIMIZATIONS & SHOPT_FAST_EMULATION
@@ -3239,18 +3242,22 @@ static int sh_page_fault(struct vcpu *v,
     /* to add into the lists */
     // tmp = (struct mappings_list *)malloc(sizeof(struct mappings_list));    
     if (done == 1) { // make sure that the lists have been initialized
-      add.page_number = (va & PAGE_MASK);
-      add.frame_number = mfn_x(gmfn);
-      list_add(&(add.list), &(list_local.list));
+      tmp = (struct mappings_list *)xmalloc(struct mappings_list);
+      tmp->page_number = (va & PAGE_MASK);
+      tmp->frame_number = mfn_x(gmfn);
+      // add.page_number = (va & PAGE_MASK);
+      // add.frame_number = mfn_x(gmfn);
+      // list_add(&(add.list), &(list_local.list));
+      list_add(&(tmp->list), &(list_local.list));
       printk("added to list\n");
-      
+            
       // @xenmaster
       /* to iterate over the lists */
-      list_for_each_entry(pos, &list_local.list, list) {
-        i++;
-        printk("page num is %#lx and mfn is %#lx\n", pos->page_number, pos->frame_number);
-      }
-      printk("num in list is %d\n", i);
+      // list_for_each_entry(pos, &list_local.list, list) {
+      //   i++;
+      //   printk("page num is %#lx and mfn is %#lx\n", pos->page_number, pos->frame_number);
+      // }
+      // printk("num in list is %d\n", i);
     }
     
     // @xenmaster
