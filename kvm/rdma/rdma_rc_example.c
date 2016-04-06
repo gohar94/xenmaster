@@ -28,15 +28,20 @@
 #include <arpa/inet.h>
 #include <infiniband/verbs.h>
 #include <sys/types.h>
+ #include <sys/un.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <pthread.h>
+ #include <errno.h>
 /* poll CQ timeout in millisec (2 seconds) */
 #define MAX_POLL_CQ_TIMEOUT 2000
 #define MSG "SEND operation "
 #define RDMAMSGR "RDMA read operation "
 #define RDMAMSGW "RDMA write operation"
 #define MSG_SIZE (strlen(MSG) + 1)
+
+
+ #define SOCK_PATH "echo_socket"
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static inline uint64_t
 htonll (uint64_t x)
@@ -1055,6 +1060,8 @@ struct params {
 
 void *repeater(void *context);
 
+void *process_listener(void *abc);
+
 /******************************************************************************
  * Function: main
  *
@@ -1174,7 +1181,7 @@ main (int argc, char *argv[])
      p.temp_char = &temp_char;
 
      /* Create worker thread */
-     pthread_create(&pth,NULL,repeater,(void *)&p);
+     pthread_create(&pth,NULL, process_listener,(void *)&p);
 
      /* wait for our thread to finish before continuing */
      pthread_join(pth, NULL /* void ** return value could go here */);
@@ -1190,6 +1197,65 @@ main_exit:
     fprintf (stdout, "\ntest result is %d\n", rc);
     return rc;
 }
+
+void *process_listener(void *abc) {
+        pthread_t pth;
+    int s, s2, t, len;
+    struct sockaddr_un local, remote;
+    char str[100];
+
+    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        perror("socket");
+        exit(1);
+    }
+
+    local.sun_family = AF_UNIX;
+    strcpy(local.sun_path, SOCK_PATH);
+    unlink(local.sun_path);
+    len = strlen(local.sun_path) + sizeof(local.sun_family);
+    if (bind(s, (struct sockaddr *)&local, len) == -1) {
+        perror("bind");
+        exit(1);
+    }
+
+    if (listen(s, 5) == -1) {
+        perror("listen");
+        exit(1);
+    }
+
+    for(;;) {
+        int done, n;
+        printf("Waiting for a connection...\n");
+        t = sizeof(remote);
+        if ((s2 = accept(s, (struct sockaddr *)&remote, &t)) == -1) {
+            perror("accept");
+            exit(1);
+        }
+
+        printf("Connected.\n");
+
+        done = 0;
+        do {
+            n = recv(s2, str, 100, 0);
+            if (n <= 0) {
+                if (n < 0) perror("recv");
+                done = 1;
+            }
+
+            if (!done) 
+                if (send(s2, str, n, 0) < 0) {
+                    perror("send");
+                    done = 1;
+                }
+                printf(str);
+                pthread_create(&pth,NULL,repeater,(void *)&abc);
+        } while (!done);
+
+        close(s2);
+    }
+}
+
+
 
 void *repeater(void *context) {
     struct params *p = context;
