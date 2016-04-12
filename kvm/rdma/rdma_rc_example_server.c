@@ -34,8 +34,7 @@
 #define MAX_POLL_CQ_TIMEOUT 2000
 #define MSG "SEND operation "
 #define RDMAMSGR "RDMA read operation "
-#define RDMAMSGW "RDMA write operation"
-#define MSG_SIZE 512
+#define MSG_SIZE 4096
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static inline uint64_t
 htonll (uint64_t x)
