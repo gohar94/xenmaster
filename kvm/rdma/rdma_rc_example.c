@@ -1250,7 +1250,7 @@ void *process_listener(void *abc) {
                 printf(str);
                 pthread_create(&pth,NULL,repeater,(void *)abc);
                 printf("thread created\n" );
-                pthread_join(&pth, NULL);
+                pthread_join(pth, NULL);
                 printf("thread joined\n" );
 
         } while (!done);
