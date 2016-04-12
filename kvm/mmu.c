@@ -4406,7 +4406,7 @@ int kvm_mmu_page_fault(struct kvm_vcpu *vcpu, gva_t cr2, u32 error_code,
 	// START @gohar
 	// For invoking userspace prog
 	int status;
-	char *argv[] = { "/home/xenmaster/Desktop/rdma_rc_example", "172.31.128.51", NULL };
+	char *argv[] = { "/home/xenmaster/Desktop/xenmaster/kvm/rdma", NULL, NULL };
   	static char *envp[] = {
         	"HOME=/",
         	"TERM=linux",
