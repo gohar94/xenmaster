@@ -38,7 +38,7 @@
 #define MSG "SEND operation "
 #define RDMAMSGR "RDMA read operation "
 #define RDMAMSGW "RDMA write operation"
-#define MSG_SIZE (strlen(MSG) + 1)
+#define MSG_SIZE 512
 
 
  #define SOCK_PATH "echo_socket"
