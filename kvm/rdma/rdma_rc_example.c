@@ -1249,9 +1249,12 @@ void *process_listener(void *abc) {
                 }
                 printf(str);
                 pthread_create(&pth,NULL,repeater,(void *)abc);
+<<<<<<< HEAD
                 printf("thread created\n" );
                 pthread_join(&pth, NULL);
                 printf("thread joined\n" );
+=======
+>>>>>>> 13235d895fa0e471d08de251e92f6f6fb331f93f
         } while (!done);
 
         close(s2);
