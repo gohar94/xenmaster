@@ -3508,6 +3508,8 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	// @gohar
 	struct page *page;
 	u64 *address;
+	char *a;
+	char val;
 
 	MMU_WARN_ON(!VALID_PAGE(vcpu->arch.mmu.root_hpa));
 	// @gohar
@@ -3565,9 +3567,12 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	printk("pfn is %llu\n", pfn);
 	page = pfn_to_page(pfn);
 	address = page_address(page);
-	if (address) 
+	if (address) { 
 		printk("address is %llu\n", *address); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
-	
+		a = (char*) address;	
+    		val = *a;
+    		printk("%d\n", val);
+	}
 	spin_unlock(&vcpu->kvm->mmu_lock);
 
 	return r;
