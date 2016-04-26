@@ -3565,7 +3565,7 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	printk("pfn is %llu\n", pfn);
 	page = pfn_to_page(pfn);
 	address = page_address(page);
-	printk("address is %llu\n", *address);
+	printk("address is %llu\n", *address); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
 	
 	spin_unlock(&vcpu->kvm->mmu_lock);
 
