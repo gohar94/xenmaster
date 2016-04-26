@@ -2907,6 +2907,8 @@ static bool fast_page_fault(struct kvm_vcpu *vcpu, gva_t gva, int level,
 	struct kvm_mmu_page *sp;
 	bool ret = false;
 	u64 spte = 0ull;
+	// @gohar
+	printk("fast page fault\n");
 
 	if (!VALID_PAGE(vcpu->arch.mmu.root_hpa))
 		return false;
@@ -3367,9 +3369,14 @@ int handle_mmio_page_fault(struct kvm_vcpu *vcpu, u64 addr, bool direct)
 {
 	u64 spte;
 	bool reserved;
+	// @gohar
+	printk("handle mmio page fault\n");
 
-	if (quickly_check_mmio_pf(vcpu, addr, direct))
+	if (quickly_check_mmio_pf(vcpu, addr, direct)) {
+		// @gohar
+		printk("quickly check mmio pf\n");
 		return RET_MMIO_PF_EMULATE;
+	}
 
 	reserved = walk_shadow_page_get_mmio_spte(vcpu, addr, &spte);
 	if (WARN_ON(reserved))
@@ -3386,6 +3393,8 @@ int handle_mmio_page_fault(struct kvm_vcpu *vcpu, u64 addr, bool direct)
 			addr = 0;
 
 		trace_handle_mmio_page_fault(addr, gfn, access);
+		// @gohar
+		printk("pfn is %llu\n", gfn);
 		vcpu_cache_mmio_info(vcpu, addr, gfn, access);
 		return RET_MMIO_PF_EMULATE;
 	}
@@ -3403,6 +3412,9 @@ static int nonpaging_page_fault(struct kvm_vcpu *vcpu, gva_t gva,
 {
 	gfn_t gfn;
 	int r;
+
+	// @gohar
+	printk("non paging page fault\n");
 
 	pgprintk("%s: gva %lx error %x\n", __func__, gva, error_code);
 
@@ -3495,6 +3507,8 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	bool map_writable;
 
 	MMU_WARN_ON(!VALID_PAGE(vcpu->arch.mmu.root_hpa));
+	// @gohar
+	printk("tdp page fault\n");
 
 	if (unlikely(error_code & PFERR_RSVD_MASK)) {
 		r = handle_mmio_page_fault(vcpu, gpa, true);
@@ -3523,11 +3537,21 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	mmu_seq = vcpu->kvm->mmu_notifier_seq;
 	smp_rmb();
 
-	if (try_async_pf(vcpu, prefault, gfn, gpa, &pfn, write, &map_writable))
+	if (try_async_pf(vcpu, prefault, gfn, gpa, &pfn, write, &map_writable)) {
+		// @gohar
+		printk("try async pf, pfn = %llu %llx \n", pfn, pfn);
 		return 0;
+	}
 
-	if (handle_abnormal_pfn(vcpu, 0, gfn, pfn, ACC_ALL, &r))
+	if (handle_abnormal_pfn(vcpu, 0, gfn, pfn, ACC_ALL, &r)) {
+		// @gohar
+		printk("handle abnormal pfn\n");
 		return r;
+	}
+	
+	// @gohar
+	printk("above spin lock line\n");
+	printk("pfn is %llu\n", pfn);
 
 	spin_lock(&vcpu->kvm->mmu_lock);
 	if (mmu_notifier_retry(vcpu->kvm, mmu_seq))
@@ -4419,6 +4443,9 @@ int kvm_mmu_page_fault(struct kvm_vcpu *vcpu, gva_t cr2, u32 error_code,
 	// END @gohar
 	
 	r = vcpu->arch.mmu.page_fault(vcpu, cr2, error_code, false);
+	// @gohar START
+	printk("r is %d\n", r);
+	// @gohar END
 	if (r < 0)
 		goto out;
 
