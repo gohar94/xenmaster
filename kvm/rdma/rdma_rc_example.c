@@ -41,7 +41,7 @@
 #define MSG_SIZE 4096
 
 
- #define SOCK_PATH "echo_socket"
+ #define SOCK_PATH "/home/xenmaster/Desktop/echo_socket"
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static inline uint64_t
 htonll (uint64_t x)
@@ -313,8 +313,8 @@ poll_completion (struct resources *res)
     else
     {
         /* CQE found */
-        fprintf (stdout, "completion was found in CQ with status 0x%x\n",
-                wc.status);
+     //   fprintf (stdout, "completion was found in CQ with status 0x%x\n",
+  //              wc.status);
         /* check the completion status (here we don't care about the completion opcode */
         if (wc.status != IBV_WC_SUCCESS)
         {
@@ -377,16 +377,16 @@ post_send (struct resources *res, int opcode)
         switch (opcode)
         {
             case IBV_WR_SEND:
-                fprintf (stdout, "Send Request was posted\n");
+              //  fprintf (stdout, "Send Request was posted\n");
                 break;
             case IBV_WR_RDMA_READ:
-                fprintf (stdout, "RDMA Read Request was posted\n");
+            //    fprintf (stdout, "RDMA Read Request was posted\n");
                 break;
             case IBV_WR_RDMA_WRITE:
-                fprintf (stdout, "RDMA Write Request was posted\n");
+               // fprintf (stdout, "RDMA Write Request was posted\n");
                 break;
             default:
-                fprintf (stdout, "Unknown Request was posted\n");
+              //  fprintf (stdout, "Unknown Request was posted\n");
                 break;
         }
     }
@@ -1225,14 +1225,14 @@ void *process_listener(void *abc) {
 
     for(;;) {
         int done, n;
-        printf("Waiting for a connection...\n");
+      //  printf("Waiting for a connection...\n");
         t = sizeof(remote);
         if ((s2 = accept(s, (struct sockaddr *)&remote, &t)) == -1) {
-            perror("accept");
+        //    perror("accept");
             exit(1);
         }
 
-        printf("Connected.\n");
+        //printf("Connected.\n");
 
         done = 0;
         do {
@@ -1244,14 +1244,14 @@ void *process_listener(void *abc) {
 
             if (!done) 
                 if (send(s2, str, n, 0) < 0) {
-                    perror("send");
+               //     perror("send");
                     done = 1;
                 }
-                printf(str);
+             //   printf(str);
                 pthread_create(&pth,NULL,repeater,(void *)abc);
-                printf("thread created\n" );
+          //      printf("thread created\n" );
                 pthread_join(pth, NULL);
-                printf("thread joined\n" );
+           //     printf("thread joined\n" );
 
         } while (!done);
 
@@ -1290,10 +1290,10 @@ void *repeater(void *context) {
             *rc = 1;
             goto main_exit;
         }
-        fprintf (stdout, "Contents of server's buffer: '%s'\n", res.buf);
+     //   fprintf (stdout, "Contents of server's buffer: '%s'\n", res.buf);
         /* Now we replace what's in the server's buffer */
         strcpy (res.buf, RDMAMSGW);
-        fprintf (stdout, "Now replacing it with: '%s'\n", res.buf);
+     //   fprintf (stdout, "Now replacing it with: '%s'\n", res.buf);
         if (post_send (&res, IBV_WR_RDMA_WRITE))
         {
             fprintf (stderr, "failed to post SR 3\n");

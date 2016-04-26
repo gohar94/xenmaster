@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define SOCK_PATH "echo_socket"
+#define SOCK_PATH "/home/xenmaster/Desktop/echo_socket"
 
 int main(void)
 {
