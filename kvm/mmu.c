@@ -3507,9 +3507,8 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	bool map_writable;
 	// @gohar
 	struct page *page;
-	u64 *address;
-	char *a;
-	char val;
+	void *address;
+	u64 *addressU;
 
 	MMU_WARN_ON(!VALID_PAGE(vcpu->arch.mmu.root_hpa));
 	// @gohar
@@ -3567,11 +3566,12 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	printk("pfn is %llu\n", pfn);
 	page = pfn_to_page(pfn);
 	address = page_address(page);
-	if (address) { 
-		printk("address is %llu\n", *address); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
-		a = (char*) address;	
-    		val = *a;
-    		printk("%d\n", val);
+	if (address != NULL) {
+		addressU = (u64 *)address;
+		printk("not null\n");
+		printk("pa = %lx\n", __pa((u64)*addressU));
+		printk("va = %lx\n", (unsigned long)__va(__pa((u64)*addressU)));
+		printk("address is %llx --- %016llX\n", (u64)*addressU, (u64)*addressU); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
 	}
 	spin_unlock(&vcpu->kvm->mmu_lock);
 
@@ -3931,6 +3931,8 @@ static void paging64_init_context_common(struct kvm_vcpu *vcpu,
 					 struct kvm_mmu *context,
 					 int level)
 {
+	// @gohar
+	printk("here in paging 64 init context common\n");
 	context->nx = is_nx(vcpu);
 	context->root_level = level;
 
@@ -3958,6 +3960,8 @@ static void paging64_init_context(struct kvm_vcpu *vcpu,
 static void paging32_init_context(struct kvm_vcpu *vcpu,
 				  struct kvm_mmu *context)
 {
+	// @gohar
+	printk("paging 32 init context\n");
 	context->nx = false;
 	context->root_level = PT32_ROOT_LEVEL;
 
@@ -4027,20 +4031,27 @@ static void init_kvm_tdp_mmu(struct kvm_vcpu *vcpu)
 
 void kvm_init_shadow_mmu(struct kvm_vcpu *vcpu)
 {
+	// @gohar
+	printk("kvm init shadow mmu\n");
 	bool smep = kvm_read_cr4_bits(vcpu, X86_CR4_SMEP);
 	bool smap = kvm_read_cr4_bits(vcpu, X86_CR4_SMAP);
 	struct kvm_mmu *context = &vcpu->arch.mmu;
 
 	MMU_WARN_ON(VALID_PAGE(context->root_hpa));
 
-	if (!is_paging(vcpu))
+	if (!is_paging(vcpu)) {
 		nonpaging_init_context(vcpu, context);
-	else if (is_long_mode(vcpu))
+		printk("not is paging\n");
+	} else if (is_long_mode(vcpu)) {
 		paging64_init_context(vcpu, context);
-	else if (is_pae(vcpu))
+		printk("is long mode\n");
+	} else if (is_pae(vcpu)) {
 		paging32E_init_context(vcpu, context);
-	else
+		printk("is pae\n");
+	} else {
 		paging32_init_context(vcpu, context);
+		printk("paging 32 init context\n");
+	}
 
 	context->base_role.nxe = is_nx(vcpu);
 	context->base_role.cr4_pae = !!is_pae(vcpu);
@@ -4058,6 +4069,8 @@ void kvm_init_shadow_ept_mmu(struct kvm_vcpu *vcpu, bool execonly)
 {
 	struct kvm_mmu *context = &vcpu->arch.mmu;
 
+	// @gohar
+	printk("inside shadow ept mmu\n");
 	MMU_WARN_ON(VALID_PAGE(context->root_hpa));
 
 	context->shadow_root_level = kvm_x86_ops->get_tdp_level();
@@ -4080,6 +4093,8 @@ EXPORT_SYMBOL_GPL(kvm_init_shadow_ept_mmu);
 
 static void init_kvm_softmmu(struct kvm_vcpu *vcpu)
 {
+	// @gohar
+	printk("inside soft mmu\n");
 	struct kvm_mmu *context = &vcpu->arch.mmu;
 
 	kvm_init_shadow_mmu(vcpu);
