@@ -3505,6 +3505,9 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 	unsigned long mmu_seq;
 	int write = error_code & PFERR_WRITE_MASK;
 	bool map_writable;
+	// @gohar
+	struct page *page;
+	u64 *address;
 
 	MMU_WARN_ON(!VALID_PAGE(vcpu->arch.mmu.root_hpa));
 	// @gohar
@@ -3549,10 +3552,6 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 		return r;
 	}
 	
-	// @gohar
-	printk("above spin lock line\n");
-	printk("pfn is %llu\n", pfn);
-
 	spin_lock(&vcpu->kvm->mmu_lock);
 	if (mmu_notifier_retry(vcpu->kvm, mmu_seq))
 		goto out_unlock;
@@ -3561,6 +3560,13 @@ static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 		transparent_hugepage_adjust(vcpu, &gfn, &pfn, &level);
 	r = __direct_map(vcpu, gpa, write, map_writable,
 			 level, gfn, pfn, prefault);
+	// @gohar
+	printk("above spin unlock line\n");
+	printk("pfn is %llu\n", pfn);
+	page = pfn_to_page(pfn);
+	address = page_address(page);
+	printk("address is %llu\n", *address);
+	
 	spin_unlock(&vcpu->kvm->mmu_lock);
 
 	return r;
