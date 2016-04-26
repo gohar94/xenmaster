@@ -4405,14 +4405,17 @@ int kvm_mmu_page_fault(struct kvm_vcpu *vcpu, gva_t cr2, u32 error_code,
 	
 	// START @gohar
 	// For invoking userspace prog
-	int status;
-	char *argv[] = { "/home/xenmaster/Desktop/xenmaster/kvm/rdma", NULL, NULL };
-  	static char *envp[] = {
-        	"HOME=/",
-        	"TERM=linux",
-        	"PATH=/sbin:/bin:/usr/sbin:/usr/bin", NULL };
-  	status = call_usermodehelper( argv[0], argv, envp, UMH_WAIT_PROC );
-	printk("Status = %d\n", status);
+	// int status;
+	// char *argv[] = { "/home/xenmaster/Desktop/xenmaster/kvm/rdma/echoc", "-c", "env", 0 };
+  	// static char *envp[] = {
+        //	"HOME=/",
+        //	"PATH=/bin:/usr/bin",
+	//	"TZ=UTC0",
+        //	"USER=beelzebub",
+        //	"LOGNAME=tarzan",
+        //	0};
+  	// status = call_usermodehelper( argv[0], argv, envp, UMH_WAIT_PROC );
+	// printk("Status = %d\n", status);
 	// END @gohar
 	
 	r = vcpu->arch.mmu.page_fault(vcpu, cr2, error_code, false);
