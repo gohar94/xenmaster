@@ -3463,7 +3463,7 @@ static bool try_async_pf(struct kvm_vcpu *vcpu, bool prefault, gfn_t gfn,
 {
 	struct kvm_memory_slot *slot;
 	bool async;
-
+	printk("entered async_pf\n");
 	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
 	async = false;
 	*pfn = __gfn_to_pfn_memslot(slot, gfn, false, &async, write, writable);
@@ -3481,6 +3481,8 @@ static bool try_async_pf(struct kvm_vcpu *vcpu, bool prefault, gfn_t gfn,
 	}
 
 	*pfn = __gfn_to_pfn_memslot(slot, gfn, false, NULL, write, writable);
+	
+	printk("going to return false\n");
 	return false;
 }
 

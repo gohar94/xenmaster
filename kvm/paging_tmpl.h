@@ -336,7 +336,7 @@ retry_walk:
 					    &walker->pte_writable[walker->level - 1]);
 		// @gohar
 		phys_addr = __pa(host_addr);
-		printk("phys addr is %lu\n", phys_addr);
+  //@bilal commented   //		printk("walk_addr_generic phys addr is %lu\n", phys_addr);
  
 		if (unlikely(kvm_is_error_hva(host_addr)))
 			goto error;
@@ -707,6 +707,13 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 	bool force_pt_level = false;
 	unsigned long mmu_seq;
 	bool map_writable, is_self_change_mapping;
+	  // @gohar
+        struct page *page;
+        void *address;
+        u64 *addressU;
+	char buf[4096] = "";
+	int ij;
+	char* temp_addr;
 
 	pgprintk("%s: addr %lx err %x\n", __func__, addr, error_code);
 
@@ -714,8 +721,10 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 	printk("in page fault fname \n");
 	if (unlikely(error_code & PFERR_RSVD_MASK)) {
 		r = handle_mmio_page_fault(vcpu, addr, mmu_is_nested(vcpu));
-		if (likely(r != RET_MMIO_PF_INVALID))
+		if (likely(r != RET_MMIO_PF_INVALID)) {
+			printk("returning here");
 			return r;
+		}
 
 		/*
 		 * page fault with PFEC.RSVD  = 1 is caused by shadow
@@ -726,9 +735,10 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 	};
 
 	r = mmu_topup_memory_caches(vcpu);
-	if (r)
+	if (r) {
+		printk("Memory cache");
 		return r;
-
+	}
 	/*
 	 * Look up the guest pte for the faulting address.
 	 */
@@ -741,7 +751,7 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 		pgprintk("%s: guest page fault\n", __func__);
 		if (!prefault)
 			inject_page_fault(vcpu, &walker.fault);
-
+		printk("guest handles");
 		return 0;
 	}
 
@@ -763,9 +773,40 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 	smp_rmb();
 
 	if (try_async_pf(vcpu, prefault, walker.gfn, addr, &pfn, write_fault,
-			 &map_writable))
-		return 0;
+			 &map_writable)) {
+		printk("pfn is %llu\n", pfn);
+	        page = pfn_to_page(pfn);
+	        address = page_address(page);
+	        if (address != NULL) {
+        	        addressU = (u64 *)address;
+        	        printk("not null\n");
+        	        printk("pa = %lx\n", __pa((u64)*addressU));
+        	        printk("va = %lx\n", (unsigned long)__va(__pa((u64)*addressU)));
+        	        printk("address is %llx --- %016llX\n", (u64)*addressU, (u64)*addressU); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
+     		   }
 
+		return 0;
+	}
+	
+
+		printk("pafn is %llu\n", pfn);
+	        page = pfn_to_page(pfn);
+	        address = page_address(page);
+	        if (address != NULL) {
+        	        addressU = (u64 *)address;
+        	        printk("not null\n");
+        	        printk("pa = %lx\n", __pa((u64)*addressU));
+        	        printk("va = %lx\n", (unsigned long)__va(__pa((u64)*addressU)));
+        	        printk("address is %llx --- %016llX\n", (u64)*addressU, (u64)*addressU); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
+			temp_addr = (char *) __pa((u64)*addressU);
+			if ((unsigned long)__va(__pa((u64)*addressU)) != 0) {
+			
+				for (ij = 0; ij < 4096; ij++) {
+					buf[ij] = temp_addr[ij];
+					printk("%c\n", buf[ij]);
+				}
+			}
+		}
 	if (handle_abnormal_pfn(vcpu, mmu_is_nested(vcpu) ? 0 : addr,
 				walker.gfn, pfn, walker.pte_access, &r))
 		return r;
