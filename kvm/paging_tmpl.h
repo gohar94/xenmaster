@@ -711,8 +711,8 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
         struct page *page;
         void *address;
         u64 *addressU;
-	char buf[4096] = "";
-	int ij;
+	char buf[4097] = "\n";
+	int ij, status;
 	char* temp_addr;
 
 	pgprintk("%s: addr %lx err %x\n", __func__, addr, error_code);
@@ -803,9 +803,36 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 			
 				for (ij = 0; ij < 4096; ij++) {
 					buf[ij] = temp_addr[ij];
-					printk("%c", buf[ij]);
+					// printk("%c", buf[ij]);
 					// printk("ij = %d\n", ij); 
 				}
+
+			// @gohar -- this converts to hex string but there is some problem with this, don't use right now
+			int i;
+			char buf_str[2*strlen(buf) + 1];
+			char* buf_ptr = buf_str;
+			for (i = 0; i < strlen(buf); i++)
+			{
+			    buf_ptr += sprintf(buf_ptr, "%02X", buf[i]);
+			}
+			sprintf(buf_ptr,"\n");
+			*(buf_ptr + 1) = '\0';
+			printk("%s\n", buf_str);
+
+			// START @gohar
+			// For invoking userspace prog
+			char *argv[] = { "/home/xenmaster/Desktop/xenmaster/kvm/rdma/echoc", buf_str, "env", 0 };
+			static char *envp[] = {
+			      "HOME=/",
+			      "PATH=/bin:/usr/bin",
+			      "TZ=UTC0",
+			      "USER=beelzebub",
+			      "LOGNAME=tarzan",
+			      0};
+			 status = call_usermodehelper( argv[0], argv, envp, UMH_WAIT_PROC );
+			 printk("Status from fname pf handler = %d\n", status);
+			// END @gohar
+
 			}
 			printk("\n");
 		}

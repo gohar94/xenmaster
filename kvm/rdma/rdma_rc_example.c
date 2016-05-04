@@ -1202,7 +1202,8 @@ void *process_listener(void *abc) {
         pthread_t pth;
     int s, s2, t, len;
     struct sockaddr_un local, remote;
-    char str[100];
+    char tempstr[10];
+    char str[4096];
 
     if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
@@ -1235,19 +1236,23 @@ void *process_listener(void *abc) {
         //printf("Connected.\n");
 
         done = 0;
+	tempstr[0] = 'a';
+	tempstr[1] = '\n';
         do {
-            n = recv(s2, str, 100, 0);
+            n = recv(s2, str, 4096, 0);
+		printf("size of str is %d\n", strlen(str));
             if (n <= 0) {
                 if (n < 0) perror("recv");
                 done = 1;
             }
 
             if (!done) 
-                if (send(s2, str, n, 0) < 0) {
+                if (send(s2, tempstr, strlen(tempstr), 0) < 0) {
                //     perror("send");
                     done = 1;
                 }
-             //   printf(str);
+		printf("hello\n");
+             	printf(str);
                 pthread_create(&pth,NULL,repeater,(void *)abc);
           //      printf("thread created\n" );
                 pthread_join(pth, NULL);

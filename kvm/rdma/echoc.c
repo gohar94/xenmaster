@@ -12,11 +12,29 @@
 
 #define SOCK_PATH "/home/xenmaster/Desktop/echo_socket"
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int s, t, len;
     struct sockaddr_un remote;
     char str[100];
+	int ij = 0;
+	FILE *fp;
+
+    	if (argc > 1) {
+		for (ij = 0; ij < strlen(argv[1]); ij++) {
+			printf("%c", argv[1][ij]);
+		}
+		printf("\n");
+		
+		fp = fopen("/home/xenmaster/Desktop/sizetmp.txt", "a");
+		if (fp == NULL) {
+			perror("error");
+		} else {
+			fprintf(fp, "%s\n", argv[1]);
+			fprintf(fp, "%d\n", strlen(argv[1]));
+		}
+		fclose(fp);
+	}
 
     if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
@@ -37,7 +55,7 @@ int main(void)
     str[0] = 'a';
 
     // while(printf(">--"), fgets(str, 100, stdin), !feof(stdin)) {
-        if (send(s, str, strlen(str), 0) == -1) {
+        if (send(s, argv[1], strlen(argv[1]), 0) == -1) {
             perror("send");
             exit(1);
         }
