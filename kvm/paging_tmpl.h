@@ -794,18 +794,20 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr, u32 error_code,
 	        address = page_address(page);
 	        if (address != NULL) {
         	        addressU = (u64 *)address;
-        	        printk("not null\n");
-        	        printk("pa = %lx\n", __pa((u64)*addressU));
-        	        printk("va = %lx\n", (unsigned long)__va(__pa((u64)*addressU)));
-        	        printk("address is %llx --- %016llX\n", (u64)*addressU, (u64)*addressU); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
-			temp_addr = (char *) __pa((u64)*addressU);
+        	        // printk("not null\n");
+        	        // printk("pa = %lx\n", __pa((u64)*addressU));
+        	        // printk("va = %lx\n", (unsigned long)__va(__pa((u64)*addressU)));
+        	        // printk("address is %llx --- %016llX\n", (u64)*addressU, (u64)*addressU); // this is probably a kernel virtual addr, check http://www.makelinux.net/ldd3/chp-15-sect-1
+			temp_addr = (char *) addressU;
 			if ((unsigned long)__va(__pa((u64)*addressU)) != 0) {
 			
 				for (ij = 0; ij < 4096; ij++) {
 					buf[ij] = temp_addr[ij];
-					printk("%c\n", buf[ij]);
+					printk("%c", buf[ij]);
+					// printk("ij = %d\n", ij); 
 				}
 			}
+			printk("\n");
 		}
 	if (handle_abnormal_pfn(vcpu, mmu_is_nested(vcpu) ? 0 : addr,
 				walker.gfn, pfn, walker.pte_access, &r))
